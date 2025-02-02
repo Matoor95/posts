@@ -24,7 +24,7 @@ class _PostsPageState extends State<PostsPage> {
   Future<List<Post>> _loadPosts() async {
     // On récupère le contenu brut du fichier JSON
     final String response =
-        await rootBundle.loadString('asset/data/posts.json');
+        await rootBundle.loadString('assets/data/posts.json');
     // On décode le contenu en liste dynamique
     final List<dynamic> data = jsonDecode(response);
     // On convertit chaque élément en objet Post
