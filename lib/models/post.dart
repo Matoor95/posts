@@ -13,7 +13,8 @@ class Post {
     return Post(
       id: json['id'] as int,
       title: json['title'] as String,
-      content: json['content'] as String, // <-- vous cherchez la clé "content"
+      content: json['content'] as String,
+       // <-- vous cherchez la clé "content"
     );
   }
 }
