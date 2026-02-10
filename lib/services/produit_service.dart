@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:posts/models/produit.dart';
 
 class ProduitService {
-  static const String _baseUrl = 'http://examen.test/';
+  static const String _baseUrl = 'http://api.test/';
 
  static Future<List<Produit>> fetchProducts() async {
   final response = await http.get(Uri.parse('${_baseUrl}api.php'));

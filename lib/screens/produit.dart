@@ -1,6 +1,7 @@
 // lib/pages/produit_page.dart
 import 'package:flutter/material.dart';
 import 'package:posts/services/produit_service.dart';
+import 'package:posts/screens/login_screen.dart';
 import '../models/produit.dart';
 
 class ProduitPage extends StatefulWidget {
@@ -19,14 +20,63 @@ class _ProduitPageState extends State<ProduitPage> {
     _futureProduits = ProduitService.fetchProducts();
   }
 
+  void _logout() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Catalogue Produits'),
         centerTitle: true,
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Se déconnecter',
+            onPressed: () => _showLogoutDialog(),
+          ),
+        ],
       ),
       body: _buildProductList(),
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Déconnexion'),
+        content: const Text('Voulez-vous vraiment vous déconnecter ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annuler', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _logout();
+            },
+            child: const Text('Déconnexion'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -37,15 +87,15 @@ class _ProduitPageState extends State<ProduitPage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingIndicator();
         }
-        
+
         if (snapshot.hasError) {
           return _buildErrorWidget(snapshot.error.toString());
         }
-        
+
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return _buildEmptyListWidget();
         }
-        
+
         return _buildProductGridView(snapshot.data!);
       },
     );
@@ -55,7 +105,7 @@ class _ProduitPageState extends State<ProduitPage> {
     return const Center(
       child: Padding(
         padding: EdgeInsets.all(20.0),
-        child: CircularProgressIndicator(),
+        child: CircularProgressIndicator(color: Colors.deepPurple),
       ),
     );
   }
@@ -74,20 +124,37 @@ class _ProduitPageState extends State<ProduitPage> {
               style: const TextStyle(color: Colors.red),
             ),
           ),
-          ElevatedButton(
-            onPressed: () => setState(() { _futureProduits = ProduitService.fetchProducts(); }),
-            child: const Text('Réessayer'),
-          )
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            icon: const Icon(Icons.refresh),
+            label: const Text('Réessayer'),
+            onPressed: () => setState(() {
+              _futureProduits = ProduitService.fetchProducts();
+            }),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildEmptyListWidget() {
-    return const Center(
-      child: Text(
-        'Aucun produit disponible',
-        style: TextStyle(fontSize: 18, color: Colors.grey),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.shopping_bag_outlined, size: 80, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          const Text(
+            'Aucun produit disponible',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
+        ],
       ),
     );
   }
@@ -104,41 +171,59 @@ class _ProduitPageState extends State<ProduitPage> {
       itemCount: produits.length,
       itemBuilder: (context, index) {
         final produit = produits[index];
-        return Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        return _buildProductCard(produit);
+      },
+    );
+  }
+
+  Widget _buildProductCard(Produit produit) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image placeholder
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  // ignore: deprecated_member_use
+                  color: Colors.deepPurple.withOpacity(0.08),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.shopping_bag,
+                  size: 60,
+                  // ignore: deprecated_member_use
+                  color: Colors.deepPurple.withOpacity(0.5),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Nom du produit
+            Text(
+              produit.libelle,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A2E),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 6),
+
+            // Prix
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey[200],
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.shopping_bag,
-                      size: 60,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  produit.libelle,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
                 Text(
                   '${produit.prix.toStringAsFixed(2)} €',
                   style: TextStyle(
@@ -147,19 +232,23 @@ class _ProduitPageState extends State<ProduitPage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Stock: ${produit.qte}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurple,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.add_shopping_cart,
+                    color: Colors.white,
+                    size: 16,
                   ),
                 ),
               ],
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }
